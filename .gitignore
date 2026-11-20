@@ -18,6 +18,7 @@ Thumbs.db
 tmp/
 scratch/
 *.local.*
+!/AGENTS.local.md
 
 # rendered promo video (regenerate with assets/promo/render-video.sh)
 assets/promo/*.mp4
