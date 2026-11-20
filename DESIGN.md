@@ -92,12 +92,12 @@
 
 | 部分 | 文件 | 职责 |
 | --- | --- | --- |
-| Host | `index.js` | 为根 agent 注册 `suggest_next_actions` 与一段常驻提示；子代理不注册（按会话 header 的 `origin` 区分）；安装与判定失败写日志；`enabled:false` 时什么都不注册 |
-| 规范化 | `lib/normalize.js` | 参数 → `{ shown, context, suggestions[≤3] }`：折叠空白、截断上下文与指令、按指令去重、推荐至多一条且置顶；显式标签保持完整，超宽时在执行前交回模型缩短；危险标记来自模型字段或命令形状模式。结果作为 `tool/result.meta` 写入会话日志 |
-| Client | `client.js`（手写单文件，含 CSS） | 两个 Conversation Definition：`next-actions` 把本工具结果上的 meta（native 与 PTC `run_code` 两条通路）发布为该轮卡片；`next-actions-sent` 把用户在该轮发出的第一条 `user/message` 发布为 `sent` 文本。`conversation.chat.turnTail` 渲染卡片；`tool.call.toolview` 渲染过程行 |
+| Host | `src/host/index.ts` → `index.js` | 为根 agent 注册 `suggest_next_actions` 与一段常驻提示；子代理不注册（按会话 header 的 `origin` 区分）；安装与判定失败写日志；`enabled:false` 时什么都不注册 |
+| 规范化 | `src/lib/normalize.ts` → `lib/normalize.js` | 参数 → `{ shown, context, suggestions[≤3] }`：折叠空白、截断上下文与指令、按指令去重、推荐至多一条且置顶；显式标签保持完整，超宽时在执行前交回模型缩短；危险标记来自模型字段或命令形状模式。结果作为 `tool/result.meta` 写入会话日志 |
+| Client | `src/client/index.ts` → `client.js`（含 CSS） | 两个 Conversation Definition：`next-actions` 把本工具结果上的 meta（native 与 PTC `run_code` 两条通路）发布为该轮卡片；`next-actions-sent` 把用户在该轮发出的第一条 `user/message` 发布为 `sent` 文本。`conversation.chat.turnTail` 渲染卡片；`tool.call.toolview` 渲染过程行 |
 
 会话日志只追加，压缩不删除原 `tool/result`，所以客户端直接读 meta，不重算参数，
-也不需要构建步骤；压缩产生的替换副本一律忽略，避免同一张卡片发布两次。
+压缩产生的替换副本一律忽略，避免同一张卡片发布两次。
 第 N 轮的卡片通过 `useChat` 的 `timeline.turnOrder` / `timeline.turns` 读第 N+1 轮的 `sent` 文本来判定 "已使用"；
 同一次查找也决定折叠：找到回应的卡片默认折叠，手动切换只存在组件状态里。
 

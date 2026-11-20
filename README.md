@@ -67,9 +67,12 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 ## Layout
 
 ```text
-index.js            Host: tool, root-agent standing prompt, enabled gate
-lib/normalize.js    Argument normalization; writes the card model to tool/result.meta
-client.js           Client (hand-written single file): definitions, card, process row and CSS
+index.js            Host: tool, root-agent standing prompt, enabled gate (built)
+lib/normalize.js    Argument normalization; writes the card model to tool/result.meta (built)
+client.js           Client: definitions, card, process row and CSS (built)
+src/                TypeScript sources the three artifacts are built from
+scripts/            build.mjs writes the artifacts; sync-types.mjs pins the DSH type packages
+tsconfig.json       Strict type check configuration
 cordis.patch.yml    Plugin row patch
 locale/             Plugin metadata (title and description) per DSH language
 test/               node --test
@@ -79,9 +82,12 @@ assets/promo/       Promo video: sources, poster and render scripts (output is n
 ## Development
 
 ```sh
-node --test         # tests
-npm pack --dry-run  # packaging check
+npm install         # pinned dev dependencies
+npm run build       # regenerate index.js, client.js and lib/normalize.js from src/
+npm run check       # tests, types, artifact freshness and pinned type packages
 ```
+
+`src/` is the source of truth; the three committed artifacts are build output and are never edited by hand.
 
 Use `plugin_manager`'s `install_bundle` / `remove_bundle` to install or uninstall; verify with a fake `DSH_HOME`.
 Restart DSH for Host changes; refresh the page for Client changes.
@@ -91,7 +97,7 @@ Restart DSH for Host changes; refresh the page for Client changes.
 After updating the version in `package.json` and `CHANGELOG.md`:
 
 ```sh
-node --test
+npm run check
 npm pack --dry-run
 git tag -a v<version> -m "v<version>"
 git push origin main --tags

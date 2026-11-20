@@ -58,9 +58,12 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 ## 结构
 
 ```text
-index.js            Host：工具 + 根 agent 常驻提示 + enabled 门控
-lib/normalize.js    参数规范化，结果写入 tool/result.meta
-client.js           Client（手写单文件）：Definition、卡片、过程行与 CSS
+index.js            Host：工具 + 根 agent 常驻提示 + enabled 门控（构建产物）
+lib/normalize.js    参数规范化，结果写入 tool/result.meta（构建产物）
+client.js           Client：Definition、卡片、过程行与 CSS（构建产物）
+src/                三类产物的 TypeScript 源码
+scripts/            build.mjs 生成产物；sync-types.mjs 钉住 DSH 类型包版本
+tsconfig.json       严格类型检查配置
 cordis.patch.yml    插件行 patch
 locale/             插件元数据：各 DSH 语言的标题与描述
 test/               node --test
@@ -70,9 +73,12 @@ assets/promo/       宣传片：源文件、封面与渲染脚本（成片不入
 ## 开发
 
 ```sh
-node --test         # 测试
-npm pack --dry-run  # 打包检查
+npm install         # 安装钉住版本的开发依赖
+npm run build       # 由 src/ 重新生成 index.js、client.js 与 lib/normalize.js
+npm run check       # 测试、类型、产物新鲜度与类型包版本
 ```
+
+`src/` 是唯一源码；入库的三类产物由构建生成，不手改。
 
 安装/卸载用 `plugin_manager` 的 `install_bundle` / `remove_bundle`；验证使用假 `DSH_HOME`。
 Host 改动需重启 DSH，Client 改动需刷新页面。
@@ -82,7 +88,7 @@ Host 改动需重启 DSH，Client 改动需刷新页面。
 改 `package.json` 版本与 `CHANGELOG.md` 后：
 
 ```sh
-node --test
+npm run check
 npm pack --dry-run
 git tag -a v<version> -m "v<version>"
 git push origin main --tags

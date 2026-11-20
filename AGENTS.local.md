@@ -41,12 +41,33 @@
 - 过渡状态按其等待完成的事件命名，使生命周期可读。
 - 专业术语及其他外部协议的字段和术语保持原有拼写。
 
+## 结构
+
+- `src/host/index.ts` 是 Host 半的源码，`index.js` 由 `node scripts/build.mjs` 生成并入库。
+  `src/lib/normalize.ts` 的参数规范化由同一个构建内联进 Host bundle，并单独产出 `lib/normalize.js` 供测试直接引用。
+- `src/client/index.ts` 是 Client 半的源码，`client.js` 由同一个构建生成并入库。
+  构建负责 `window.__ModuleLoader__` 信封，源码只导出 `inject` 与 `apply`。
+- `tsconfig.json`、`scripts/build.mjs`、`scripts/sync-types.mjs` 是 TypeScript 基座，
+  模板来自工作区 `tools/dsh-plugin-ts/`；类型只以 `import type` 出现，产物里没有 `@deepseek-ai/*` 运行时依赖。
+  `build.mjs` 在模板基础上增加了 `src/lib/*.ts` → `lib/*.js` 的产出，因为 Host 与测试共用一个规范化模块。
+- `test/` 三份测试保持原样：它们经假的 `window.__ModuleLoader__` 加载构建后的 `client.js`，
+  并直接 import `../lib/normalize.js`；源码迁移不改变断言。
+- 依赖 DSH 内部形状之处（事件 payload、slot 服务、Chat 快照切片、输入 facade）用局部结构类型收口，
+  使用处注明「internal shape, verified against 0.2.2-rc.5」，DSH 升级后重新确认。
+- `locale/*.json` 存放 Plugin Manager 的本地化元数据；卡片自身文案在 `src/client/index.ts` 的本地化表里。
+
 ## 验证
 
-迭代时先运行受影响的测试。运行时代码变更完成后执行项目的完整测试与检查；发行时按项目说明打包。
+迭代时先运行受影响的测试。运行时代码变更完成后执行项目的完整检查；发行时按项目说明打包。
 具体命令与验证重点见 `README.md`。
-本项目的完整检查为 `node --test`；`client.js` 是手写源码，无构建步骤；打包检查用 `npm pack --dry-run`。
-安装、升级与卸载验证使用假 `DSH_HOME` 的 `dsh plugin` 命令，不操作真实 profile。
+
+- 在项目根运行 `npm run check`：`node --test`、`tsc -p tsconfig.json`、
+  `node scripts/build.mjs --check` 与 `node scripts/sync-types.mjs --check` 依次检查行为、类型、产物新鲜度与类型包版本。
+- 修改 `src/` 后先 `npm run build` 再提交；`index.js`、`client.js` 与 `lib/normalize.js` 是入库产物，不手改。
+- DSH 升级后先 `node scripts/sync-types.mjs` 重新钉住类型包版本，再跑 `npm run check`。
+- 在默认工作区根运行 `node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions` 检查骨架。
+- 打包检查用 `npm pack --dry-run`。
+- 安装、升级与卸载验证使用假 `DSH_HOME` 的 `dsh plugin` 命令，不操作真实 profile。
 
 行为或校验变更同时覆盖有效输入与对应的拒绝、缺失或冲突情形。
 断言具体结果及关键状态，将问题复现保留为回归测试。
@@ -103,7 +124,7 @@
 ## 骨架与 Markdown
 
 - 保持插件可以独立安装、启用与停用。
-  插件以 npm 公开发布，保留手写 `client.js` 与现有的 `test/`。
+  插件以 npm 公开发布，保留入库的构建产物与现有的 `test/`。
 - 在工作区根目录运行 `node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions` 检查骨架。
 - 重排修改过的英文 Markdown 时，在项目根目录运行 `docs/scripts/reflow md <path>`。
   命令需要 Python 3.11 或更新版本。
