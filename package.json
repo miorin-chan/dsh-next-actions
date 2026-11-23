@@ -1,5 +1,5 @@
 {
-  "name": "dsh-next-actions",
+  "name": "@miorin/dsh-next-actions",
   "version": "0.1.8",
   "license": "MIT",
   "description": "Suggested next actions under DeepSeek Harness replies; clicking one fills the input draft, never sends.",

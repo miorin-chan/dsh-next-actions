@@ -10,12 +10,15 @@ to three next steps at the end of its reply.
 Click one and the full instruction lands in your input box; use it as is, change a few words, or ignore it.
 The plugin never sends anything for you.
 
-**Status: v0.1.8 (npm package: [dsh-next-actions](https://www.npmjs.com/package/dsh-next-actions)).** See
-[`DESIGN.md`](DESIGN.md) for the design and rationale, and [`CHANGELOG.md`](CHANGELOG.md) for release notes.
+This checkout uses `@miorin/dsh-next-actions`.
+The earlier v0.1.8 release is available under [`dsh-next-actions`](https://www.npmjs.com/package/dsh-next-actions).
+See [Design](DESIGN.md) and [Release notes](CHANGELOG.md).
 
 ## Install
 
 Requires DSH 0.2.2-rc.1 or later, with a Host that supports the Web Client (Desktop and Web both work).
+
+To install the earlier unscoped npm release, run:
 
 ```sh
 dsh plugin --profile desktop add dsh-next-actions
@@ -25,7 +28,7 @@ You can also install the same bundle with `plugin_manager`'s `install_bundle`,
 or by selecting it on the Plugins page in the Web sidebar.
 Restart DSH after installing.
 
-For local development, install this directory with `link:`:
+To install this scoped checkout, use `link:`:
 
 ```sh
 dsh plugin --profile desktop add link:/path/to/dsh-next-actions
@@ -102,7 +105,7 @@ npm pack --dry-run
 git tag -a v<version> -m "v<version>"
 git push origin main --tags
 npm publish --access public
-npm view dsh-next-actions version   # confirm latest points at the new version
+npm view @miorin/dsh-next-actions version   # confirm latest points at the new version
 ```
 
 After publishing, install once from the registry with a fake `DSH_HOME`; local `link:` installs do not need switching.
@@ -111,7 +114,7 @@ To turn the feature off, add this to the profile's `cordis.patch.yml`:
 
 ```yaml
 - id: dsh-next-actions
-  name: 'dsh-next-actions'
+  name: '@miorin/dsh-next-actions'
   config: { enabled: false }
 ```
 

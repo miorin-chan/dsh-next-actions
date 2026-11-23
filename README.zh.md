@@ -9,12 +9,15 @@
 完整的指令就放进输入框；原样用、改几个字，还是干脆不用，都由你决定。
 插件从不替你发送。
 
-**状态：v0.1.8（npm 包：[dsh-next-actions](https://www.npmjs.com/package/dsh-next-actions)）。** 设计与理
-念见 [`DESIGN.md`](DESIGN.md)，版本记录见 [`CHANGELOG.md`](CHANGELOG.md)。
+本仓库使用包名 `@miorin/dsh-next-actions`。
+此前发布的 v0.1.8 可通过旧包名 [`dsh-next-actions`](https://www.npmjs.com/package/dsh-next-actions) 安装。
+见[设计](DESIGN.md)和[版本记录](CHANGELOG.md)。
 
 ## 安装
 
 要求 DSH 0.2.2-rc.1 或更高版本；Host 需要支持 Web Client（Desktop 与 Web 均可）。
+
+安装此前发布的旧包时，运行：
 
 ```sh
 dsh plugin --profile desktop add dsh-next-actions
@@ -23,7 +26,7 @@ dsh plugin --profile desktop add dsh-next-actions
 也可以让 agent 用 `plugin_manager` 的 `install_bundle` 安装同名 bundle，或在 Web 侧栏的 Plugins 页面里选中它。
 装好后重启 DSH。
 
-本地开发时用 `link:` 安装本目录：
+安装当前作用域版本时，用 `link:` 指向本目录：
 
 ```sh
 dsh plugin --profile desktop add link:/path/to/dsh-next-actions
@@ -93,7 +96,7 @@ npm pack --dry-run
 git tag -a v<version> -m "v<version>"
 git push origin main --tags
 npm publish --access public
-npm view dsh-next-actions version   # 确认 latest 指向新版本
+npm view @miorin/dsh-next-actions version   # 确认 latest 指向新版本
 ```
 
 发布后用假 `DSH_HOME` 从 registry 装一次；本机 `link:` 安装不需要切换。
@@ -102,7 +105,7 @@ npm view dsh-next-actions version   # 确认 latest 指向新版本
 
 ```yaml
 - id: dsh-next-actions
-  name: 'dsh-next-actions'
+  name: '@miorin/dsh-next-actions'
   config: { enabled: false }
 ```
 
