@@ -3,7 +3,7 @@
 #
 # HTML 约定：页面里有一行 `window.__T = null; /*FRAME_T*/`，脚本逐帧把 null 换成时间（秒），
 # 页面在加载时同步渲染该时刻；总时长取页面 cue sheet 里的 "duration"。每帧截图由同目录的
-# render-html.sh 完成；音轨由同目录的 soundtrack.mjs 按同一份 cue sheet 合成，ffmpeg 编码并合流。
+# render-html.sh 完成；音轨由同目录的 soundtrack.mts 按同一份 cue sheet 合成，ffmpeg 编码并合流。
 #
 # 用法:
 #   render-video.sh stills     <page.html> <out-dir> <t>...   # 指定时刻静帧 → <out-dir>/t<t>.png
@@ -77,7 +77,7 @@ case $MODE in
       ffmpeg -loglevel error -y -framerate "$FPS" -i "$WORK/png/f%05d.png" \
         -c:v libx264 -preset slow -crf "$CRF" -pix_fmt yuv420p -movflags +faststart "$DEST"
     else
-      node "$HERE/soundtrack.mjs" "$PAGE" "$WORK/soundtrack.wav"
+      node "$HERE/soundtrack.mts" "$PAGE" "$WORK/soundtrack.wav"
       ffmpeg -loglevel error -y -framerate "$FPS" -i "$WORK/png/f%05d.png" -i "$WORK/soundtrack.wav" \
         -c:v libx264 -preset slow -crf "$CRF" -pix_fmt yuv420p -c:a aac -b:a 192k \
         -t "$DUR" -movflags +faststart "$DEST"
@@ -86,7 +86,7 @@ case $MODE in
     ;;
   soundtrack)
     [ -f "$DEST" ] || die "video not found: $DEST"
-    node "$HERE/soundtrack.mjs" "$PAGE" "$WORK/soundtrack.wav"
+    node "$HERE/soundtrack.mts" "$PAGE" "$WORK/soundtrack.wav"
     ffmpeg -loglevel error -y -i "$DEST" -i "$WORK/soundtrack.wav" -map 0:v:0 -map 1:a:0 \
       -c:v copy -c:a aac -b:a 192k -t "$DUR" -movflags +faststart "$WORK/remux.mp4"
     mv "$WORK/remux.mp4" "$DEST"

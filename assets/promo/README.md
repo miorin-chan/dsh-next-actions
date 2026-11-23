@@ -11,7 +11,7 @@
 | `dsh-next-actions-promo.mp4` | 成片（生成物，不入库）：1920×1080，30fps，45 s，H.264 / yuv420p + AAC 48 kHz 立体声 |
 | `poster.png` | 封面帧（t = 10.2 s，卡片推近，三条标注全部出现） |
 | `promo.html` | 动画源文件：画面是时间 `t` 的纯函数；`<script id="timeline">` 是共用的 cue sheet |
-| `soundtrack.mjs` | 读同一份 cue sheet，合成配乐与界面音效 |
+| `soundtrack.mts` | 读同一份 cue sheet，合成配乐与界面音效 |
 | `render-video.sh` | 逐帧注入时间、并行截图、合成音轨、用 ffmpeg 编码；也可只替换音轨 |
 | `render-html.sh` | 单帧截图：Chrome headless，DSF 2，一次性临时 profile |
 
@@ -67,7 +67,7 @@ JOBS=10 ./render-video.sh video promo.html dsh-next-actions-promo.mp4       # �
 ./render-video.sh soundtrack promo.html dsh-next-actions-promo.mp4          # 只换音轨，几秒钟
 ./render-video.sh stills promo.html /tmp/promo-stills 10.2
 cp /tmp/promo-stills/t10.2.png poster.png
-node soundtrack.mjs promo.html /tmp/soundtrack.wav                           # 只试听音轨
+node soundtrack.mts promo.html /tmp/soundtrack.wav                           # 只试听音轨
 ```
 
 `render-video.sh` 把 `promo.html` 里的 `window.__T = null; /*FRAME_T*/` 逐帧替换成时间，
@@ -84,7 +84,7 @@ Chrome 无法在嵌套的 seatbelt 沙箱（例如 Claude Code 的 Bash 沙箱�
 编曲随段落推进：标题只有铺底，出卡时电钢琴与踩镲进入，第一次点击起完整鼓组与低音，明暗主题与语言一段鼓组退场。
 界面音效全部是无音高的轻敲、点击、按键和风声，不用铃音，避免和音乐抢耳朵。
 
-`soundtrack.mjs` 只用正弦、FM、多相 BLEP 锯齿波和滤波噪声合成，自带 Freeverb 混响，
+`soundtrack.mts` 只用正弦、FM、多相 BLEP 锯齿波和滤波噪声合成，自带 Freeverb 混响，
 电钢琴与铺底随底鼓轻微闪避；不读取外部素材，同一输入输出按字节一致。
 母带按 RMS 定电平，软拐点限幅，峰值不超过 −1 dBFS。
 

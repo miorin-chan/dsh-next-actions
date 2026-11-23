@@ -58,11 +58,14 @@
 
 ## 结构
 
+`npm run build:tools` 从 `scripts/` 下的 `.mts` 生成同路径 `.mjs`，Git 跟踪 TypeScript 源码。
+Node.js 22.18 或更新版本直接运行 `.test.mts`。
+
 - `src/host/index.ts` 是 Host 半的源码，`node scripts/build.mjs` 由此生成 `index.js`。
   构建将 `src/lib/normalize.ts` 内联进 Host bundle，规范化测试直接导入这份 TypeScript 源码。
 - `src/client/index.ts` 是 Client 半的源码，同一个构建生成 `client.js`。
   构建负责 `window.__ModuleLoader__` 信封，源码只导出 `inject` 与 `apply`。
-- `tsconfig.json`、`scripts/build.mjs`、`scripts/sync-types.mjs` 是 TypeScript 基座，
+- `tsconfig.json`、`scripts/build.mts`、`scripts/sync-types.mts` 是 TypeScript 基座，
   模板来自工作区 `tools/dsh-plugin-ts/`；类型只以 `import type` 出现，产物里没有 `@deepseek-ai/*` 运行时依赖。
 - `test/` 由 Node.js 运行。
   Host 测试导入构建后的 `index.js`，Client 与契约测试通过模拟的 `window.__ModuleLoader__` 加载构建后的 `client.js`。

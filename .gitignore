@@ -24,3 +24,7 @@ scratch/
 
 # rendered promo video (regenerate with assets/promo/render-video.sh)
 assets/promo/*.mp4
+
+# Compiled tooling
+/scripts/build.mjs
+/scripts/sync-types.mjs

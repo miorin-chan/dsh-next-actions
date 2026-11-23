@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// soundtrack.mjs — 合成宣传片的配乐与界面音效，输出 48 kHz 立体声 16-bit WAV。
+// soundtrack.mts — 合成宣传片的配乐与界面音效，输出 48 kHz 立体声 16-bit WAV。
 //
-// 用法: node soundtrack.mjs <promo.html> <out.wav>
+// 用法: node soundtrack.mts <promo.html> <out.wav>
 //
 // 所有时间点读自 promo.html 里的 <script id="timeline">，与画面共用一份 cue sheet；
 // 改动画时间后重新运行即可保持同步。合成过程不依赖外部素材，同一输入输出按字节一致。
@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const [page, outPath] = process.argv.slice(2);
 if (!page || !outPath) {
-  console.error('usage: node soundtrack.mjs <promo.html> <out.wav>');
+  console.error('usage: node soundtrack.mts <promo.html> <out.wav>');
   process.exit(64);
 }
 const block = readFileSync(page, 'utf8').match(/<script id="timeline" type="application\/json">([\s\S]*?)<\/script>/);
@@ -27,7 +27,50 @@ if (!block) {
   console.error(`soundtrack: no <script id="timeline"> block in ${page}`);
   process.exit(1);
 }
-const C = JSON.parse(block[1]);
+type CueRange = [number, number];
+interface CueSheet {
+  duration: number;
+  bpm: number;
+  end: number;
+  winIn: CueRange;
+  winOut: CueRange;
+  r1Rows: number[];
+  r1Shown: number;
+  r1Fold: CueRange;
+  r1Chips: CueRange;
+  r2Rows: number[];
+  r2Shown: number;
+  r2Fold: CueRange;
+  r2Chips: CueRange;
+  callouts: number[];
+  click1: number;
+  click2: number;
+  click3: number;
+  click4: number;
+  click5: number;
+  fly1: CueRange;
+  fly2: CueRange;
+  fly3: CueRange;
+  fill1: number;
+  fill2: number;
+  fill3: number;
+  shift: number;
+  enter: number;
+  editKeys: number[];
+  draftKeys: number[];
+  draftKeys2: number[];
+  ref: number;
+  send: number;
+  sendClick: number;
+  fold1: CueRange;
+  scroll: CueRange;
+  expand: CueRange;
+  collapse: CueRange;
+  theme: CueRange;
+  langs: CueRange;
+}
+
+const C = JSON.parse(block[1]) as CueSheet;
 const T = { duration: C.duration };
 
 const SR = 48000;
@@ -37,7 +80,7 @@ const BAR = 4 * BEAT;
 const SIX = BEAT / 4;
 const SWING = SIX * 0.18;
 /** Bar 0 starts with the film. */
-const at = (bar, sixteenth) => bar * BAR + sixteenth * SIX;
+const at = (bar: number, sixteenth: number) => bar * BAR + sixteenth * SIX;
 
 // ------------------------------------------------------------------ primitives
 
@@ -57,18 +100,18 @@ function rand() {
   return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
 }
 const noise = () => rand() * 2 - 1;
-const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
-const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const mtof = (m: number) => 440 * 2 ** ((m - 69) / 12);
+const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 const TAU = 2 * Math.PI;
 
-function render(seconds, fn) {
+function render(seconds: number, fn: (seconds: number, frame: number) => number) {
   const buf = new Float32Array(Math.max(1, Math.round(seconds * SR)));
   for (let i = 0; i < buf.length; i++) buf[i] = fn(i / SR, i);
   return buf;
 }
 
 /** Mix a mono buffer in at `t0` with equal-power pan and an optional reverb send. */
-function place(buf, t0, { gain = 1, pan = 0, verb = 0, keys = false } = {}) {
+function place(buf: Float32Array, t0: number, { gain = 1, pan = 0, verb = 0, keys = false } = {}) {
   const [dry, send] = keys ? [bus.keys, bus.keysSend] : [bus.main, bus.mainSend];
   const i0 = Math.round(t0 * SR);
   const a = ((clamp(pan, -1, 1) + 1) * Math.PI) / 4;
@@ -88,12 +131,25 @@ function place(buf, t0, { gain = 1, pan = 0, verb = 0, keys = false } = {}) {
 }
 
 /** RBJ biquad; `tune` keeps state so filters can sweep. */
-function biquad(type, f, q = Math.SQRT1_2) {
-  const fl = { x1: 0, x2: 0, y1: 0, y2: 0 };
+type FilterType = 'lp' | 'hp' | 'bp';
+interface Filter {
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
+  b0: number;
+  b1: number;
+  b2: number;
+  a1: number;
+  a2: number;
+}
+
+function biquad(type: FilterType, f: number, q = Math.SQRT1_2) {
+  const fl: Filter = { x1: 0, x2: 0, y1: 0, y2: 0, b0: 0, b1: 0, b2: 0, a1: 0, a2: 0 };
   tune(fl, type, f, q);
   return fl;
 }
-function tune(fl, type, f, q) {
+function tune(fl: Filter, type: FilterType, f: number, q: number) {
   const w = (TAU * clamp(f, 10, SR * 0.45)) / SR, c = Math.cos(w), s = Math.sin(w), al = s / (2 * q), a0 = 1 + al;
   let b0, b1, b2;
   if (type === 'lp') [b0, b1, b2] = [(1 - c) / 2, 1 - c, (1 - c) / 2];
@@ -101,13 +157,13 @@ function tune(fl, type, f, q) {
   else [b0, b1, b2] = [al, 0, -al];
   Object.assign(fl, { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: (-2 * c) / a0, a2: (1 - al) / a0 });
 }
-function run(fl, x) {
+function run(fl: Filter, x: number) {
   const y = fl.b0 * x + fl.b1 * fl.x1 + fl.b2 * fl.x2 - fl.a1 * fl.y1 - fl.a2 * fl.y2;
   fl.x2 = fl.x1; fl.x1 = x; fl.y2 = fl.y1; fl.y1 = y;
   return y;
 }
 
-function polyBlep(p, dt) {
+function polyBlep(p: number, dt: number) {
   if (p < dt) { p /= dt; return p + p - p * p - 1; }
   if (p > 1 - dt) { p = (p - 1) / dt; return p * p + p + p + 1; }
   return 0;
@@ -119,7 +175,7 @@ function polyBlep(p, dt) {
  * Mellow electric-piano note: FM at ratio 1 with a low, fast-decaying index (warmth, no bell partials),
  * a little second harmonic, slow tremolo and a velocity-dependent low-pass.
  */
-function epNote(m, dur, vel) {
+function epNote(m: number, dur: number, vel: number) {
   const f = mtof(m), lp = biquad('lp', 1100 + 900 * vel, 0.7), rel = 0.12;
   return render(dur + rel, (tt) => {
     const env = (1 - Math.exp(-tt / 0.005)) * Math.exp(-tt / 1.6) * (tt > dur ? Math.exp(-(tt - dur) / (rel / 4)) : 1);
@@ -130,19 +186,19 @@ function epNote(m, dur, vel) {
 }
 
 /** Strummed chord: notes 12 ms apart, spread across the stereo field. Returns the mono sum when `bounce`. */
-function epChord(notes, t0, dur, vel, { gain = 0.13, bounce = false } = {}) {
+function epChord(notes: number[], t0: number, dur: number, vel: number, { gain = 0.13, bounce = false } = {}) {
   const strum = 0.012;
   const sum = bounce ? new Float32Array(Math.round((dur + 0.15 + strum * notes.length) * SR)) : null;
   notes.forEach((m, k) => {
     const buf = epNote(m, dur - k * strum, vel * (k === 0 ? 1 : 0.85));
-    if (bounce) buf.forEach((s, i) => { sum[i + Math.round(k * strum * SR)] += s; });
+    if (sum) buf.forEach((s, i) => { sum[i + Math.round(k * strum * SR)] += s; });
     else place(buf, t0 + k * strum, { gain, pan: (k / (notes.length - 1) - 0.5) * 0.6, verb: 0.3, keys: true });
   });
   return sum;
 }
 
 /** Soft, dark detuned-saw pad under the keys. */
-function pad(notes, t0, t1, { attack = 0.4, release = 0.7, gain = 0.035 } = {}) {
+function pad(notes: number[], t0: number, t1: number, { attack = 0.4, release = 0.7, gain = 0.035 } = {}) {
   const hold = t1 - t0;
   notes.forEach((m, k) => {
     for (const cents of [-6, 6]) {
@@ -161,8 +217,8 @@ function pad(notes, t0, t1, { attack = 0.4, release = 0.7, gain = 0.035 } = {}) 
   });
 }
 
-const KICKS = [];
-function kick(t0, gain = 0.42) {
+const KICKS: number[] = [];
+function kick(t0: number, gain = 0.42) {
   KICKS.push(t0);
   let ph = 0;
   const lp = biquad('lp', 1800);
@@ -173,14 +229,25 @@ function kick(t0, gain = 0.42) {
   place(buf, t0, { gain });
 }
 
-function noiseHit(t0, { len, decay, type, f, q = Math.SQRT1_2, gain, pan = 0, verb = 0 }) {
+interface NoiseHitOptions {
+  len: number;
+  decay: number;
+  type: FilterType;
+  f: number;
+  q?: number;
+  gain: number;
+  pan?: number;
+  verb?: number;
+}
+
+function noiseHit(t0: number, { len, decay, type, f, q = Math.SQRT1_2, gain, pan = 0, verb = 0 }: NoiseHitOptions) {
   const fl = biquad(type, f, q);
   const buf = render(len, (tt) => run(fl, noise()) * (1 - Math.exp(-tt / 0.0005)) * Math.exp(-tt / decay));
   place(buf, t0, { gain, pan, verb });
 }
 
 /** Short low sine thump; the "body" under taps, clicks and the snare. */
-function thump(t0, f0, f1, decay, gain, pan = 0) {
+function thump(t0: number, f0: number, f1: number, decay: number, gain: number, pan = 0) {
   let ph = 0;
   const buf = render(decay * 6, (tt) => {
     ph += (TAU * (f1 + (f0 - f1) * Math.exp(-tt / 0.02))) / SR;
@@ -189,13 +256,13 @@ function thump(t0, f0, f1, decay, gain, pan = 0) {
   place(buf, t0, { gain, pan });
 }
 
-const hat = (t0, gain) => noiseHit(t0, { len: 0.1, decay: 0.022, type: 'bp', f: 6500, q: 0.7, gain, pan: 0.2 });
-function snare(t0, gain = 0.12) {
+const hat = (t0: number, gain: number) => noiseHit(t0, { len: 0.1, decay: 0.022, type: 'bp', f: 6500, q: 0.7, gain, pan: 0.2 });
+function snare(t0: number, gain = 0.12) {
   noiseHit(t0, { len: 0.35, decay: 0.08, type: 'bp', f: 1600, q: 0.8, gain, pan: -0.08, verb: 0.25 });
   thump(t0, 230, 185, 0.04, gain * 0.7);
 }
 
-function bass(m, t0, dur, gain = 0.22, decay = 1.4) {
+function bass(m: number, t0: number, dur: number, gain = 0.22, decay = 1.4) {
   const f = mtof(m), lp = biquad('lp', 700);
   const buf = render(dur + 0.15, (tt) => {
     const body = Math.exp(-Math.min(tt, dur) / decay) * (tt > dur ? Math.exp(-(tt - dur) / 0.03) : 1);
@@ -206,7 +273,7 @@ function bass(m, t0, dur, gain = 0.22, decay = 1.4) {
 }
 
 /** Band-passed noise whose centre glides f0 → f1 (whoosh / swell). */
-function sweep(t0, t1, f0, f1, { gain = 0.07, q = 1.3, pan = 0, verb = 0.3, shape = (p) => Math.sin(Math.PI * p) ** 1.5 } = {}) {
+function sweep(t0: number, t1: number, f0: number, f1: number, { gain = 0.07, q = 1.3, pan = 0, verb = 0.3, shape = (p: number) => Math.sin(Math.PI * p) ** 1.5 } = {}) {
   const len = t1 - t0, fl = biquad('bp', f0, q);
   const buf = render(len, (tt, i) => {
     const p = tt / len;
@@ -217,25 +284,25 @@ function sweep(t0, t1, f0, f1, { gain = 0.07, q = 1.3, pan = 0, verb = 0.3, shap
 }
 
 /** Soft fingertip tap: a short noise tick over a low thump; no pitch you could hum. */
-function tap(t0, gain, { f = 2400, pan = 0 } = {}) {
+function tap(t0: number, gain: number, { f = 2400, pan = 0 } = {}) {
   noiseHit(t0, { len: 0.03, decay: 0.005, type: 'bp', f, q: 1.0, gain, pan });
   thump(t0, 170, 120, 0.012, gain * 0.8, pan);
 }
 
 /** Mouse click. */
-function click(t0, gain = 0.28, pan = 0) {
+function click(t0: number, gain = 0.28, pan = 0) {
   noiseHit(t0, { len: 0.02, decay: 0.0022, type: 'hp', f: 3000, gain, pan });
   thump(t0, 210, 160, 0.01, gain * 0.7, pan);
 }
 
 /** Keyboard key, slightly varied per stroke. */
-function key(t0, gain) {
+function key(t0: number, gain: number) {
   const pan = (rand() - 0.5) * 0.3;
   noiseHit(t0, { len: 0.04, decay: 0.004, type: 'bp', f: 3000 + rand() * 700, q: 1.2, gain, pan });
   thump(t0, 160, 130, 0.008, gain * 0.5, pan);
 }
 
-function boom(t0, gain = 0.3) {
+function boom(t0: number, gain = 0.3) {
   thump(t0, 60, 38, 0.6, gain);
 }
 
@@ -249,7 +316,7 @@ const END_BAR = Math.round(C.end / BAR);            // the final chord lands on 
 const BREAK_BAR = END_BAR - 2;                      // drums leave for the theme / language section
 const GROOVE = Math.floor(C.click1 / BAR + 0.5);    // full groove from the first click
 
-const chordOf = (bar) => (bar < BREAK_BAR ? LOOP[(bar - 1) % 4] : bar === BREAK_BAR ? GM7 : C9SUS4);
+const chordOf = (bar: number) => (bar < BREAK_BAR ? LOOP[(bar - 1) % 4] : bar === BREAK_BAR ? GM7 : C9SUS4);
 
 // Title: the pad swells under one soft chord.
 pad(FMAJ7, 0, at(1, 0), { attack: 1.6, gain: 0.04 });
@@ -266,7 +333,7 @@ for (let bar = 1; bar < END_BAR; bar++) {
 
 // Reverse swell of the final chord, ending exactly on the hit.
 const FINAL = [55, 57, 60, 64, 69];
-const swell = epChord(FINAL, 0, 0.9, 0.8, { bounce: true }).reverse();
+const swell = epChord(FINAL, 0, 0.9, 0.8, { bounce: true })!.reverse();
 const swellLen = swell.length / SR;
 swell.forEach((s, i, a) => { a[i] = s * Math.min(1, i / (0.2 * SR)); });
 place(swell, C.end - swellLen, { gain: 0.12, verb: 0.3, keys: true });
@@ -275,8 +342,8 @@ epChord(FINAL, C.end, 2.6, 0.9);
 pad(FINAL, C.end, T.duration - 1.4, { attack: 0.05, release: 1.4, gain: 0.04 });
 
 // Drums: hats under the first card, a light kick under its anatomy, the swung groove from the first click.
-const swing = (step) => (step % 4 === 2 ? SWING : 0);
-const hats = (bar, gain = 1, steps = [0, 2, 4, 6, 8, 10, 12, 14]) =>
+const swing = (step: number) => (step % 4 === 2 ? SWING : 0);
+const hats = (bar: number, gain = 1, steps = [0, 2, 4, 6, 8, 10, 12, 14]) =>
   steps.forEach((step) => hat(at(bar, step) + swing(step), (step % 4 ? 0.035 : 0.02) * gain));
 hats(2, 0.6);
 for (let bar = 3; bar < GROOVE; bar++) {
@@ -311,7 +378,11 @@ bass(29, C.end, 2.0, 0.2, 1.0);
 // ------------------------------------------------------------------ interface sounds (no pitched tones)
 
 sweep(C.winIn[0], C.winIn[1] + 0.1, 700, 2600, { gain: 0.04, q: 1.0 });                              // 窗口出现
-for (const [rows, shown, fold, chips] of [[C.r1Rows, C.r1Shown, C.r1Fold, C.r1Chips], [C.r2Rows, C.r2Shown, C.r2Fold, C.r2Chips]]) {
+const rounds: [number[], number, CueRange, CueRange][] = [
+  [C.r1Rows, C.r1Shown, C.r1Fold, C.r1Chips],
+  [C.r2Rows, C.r2Shown, C.r2Fold, C.r2Chips],
+];
+for (const [rows, shown, fold, chips] of rounds) {
   rows.forEach((t) => tap(t, 0.03, { f: 1800, pan: -0.3 }));                                          // 过程行
   sweep(rows[rows.length - 1], shown + 0.05, 1200, 4000, { gain: 0.018, q: 2 });                      // 正在生成
   tap(shown, 0.035, { f: 2400, pan: -0.3 });                                                          // 已生成 · 3
@@ -320,7 +391,7 @@ for (const [rows, shown, fold, chips] of [[C.r1Rows, C.r1Shown, C.r1Fold, C.r1Ch
 }
 C.callouts.forEach((t, i) => tap(t, 0.04, { f: 2800 + i * 200, pan: -0.2 + i * 0.2 }));             // 标注
 for (const t of [C.click1, C.click2, C.sendClick, C.click3, C.click4, C.click5]) click(t, 0.26, 0.1); // 点击
-for (const [fly, fill] of [[C.fly1, C.fill1], [C.fly2, C.fill2], [C.fly3, C.fill3]]) {
+for (const [fly, fill] of [[C.fly1, C.fill1], [C.fly2, C.fill2], [C.fly3, C.fill3]] as const) {
   sweep(fly[0], fly[1], 3200, 900, { gain: 0.055, q: 1.1, pan: -0.15 });                             // 指令飞向输入框
   thump(fill, 220, 120, 0.05, 0.12);                                                                  // 落入输入框
   noiseHit(fill, { len: 0.03, decay: 0.006, type: 'bp', f: 1200, q: 1, gain: 0.05 });
@@ -342,10 +413,10 @@ sweep(C.winOut[0], C.winOut[1], 2600, 700, { gain: 0.035, q: 1.0 });            
 
 // ------------------------------------------------------------------ master
 
-function freeverb(inL, inR, { room = 0.82, damp = 0.4 } = {}) {
+function freeverb(inL: Float32Array, inR: Float32Array, { room = 0.82, damp = 0.4 } = {}) {
   const k = SR / 44100;
-  const line = (d) => ({ buf: new Float32Array(Math.round(d * k)), i: 0, store: 0 });
-  const chan = (spread) => ({
+  const line = (d: number) => ({ buf: new Float32Array(Math.round(d * k)), i: 0, store: 0 });
+  const chan = (spread: number) => ({
     combs: [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617].map((d) => line(d + spread)),
     aps: [556, 441, 341, 225].map((d) => line(d + spread)),
   });
@@ -393,7 +464,7 @@ const TARGET_RMS = -17.5;
 let sum = 0;
 for (let n = 0; n < N; n++) sum += (mix[0][n] ** 2 + mix[1][n] ** 2) / 2;
 const scale = 10 ** (TARGET_RMS / 20) / Math.sqrt(sum / N);
-const knee = (x) => {
+const knee = (x: number) => {
   const a = Math.abs(x);
   return a < 0.7 ? x : Math.sign(x) * (0.7 + 0.3 * Math.tanh((a - 0.7) / 0.3));
 };
