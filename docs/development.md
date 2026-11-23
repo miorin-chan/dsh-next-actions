@@ -25,7 +25,7 @@ Git 忽略这两个产物，npm 发布包包含它们。修改源码后可用 `n
 从 DSH 默认工作区根目录检查插件骨架。
 
 ```sh
-node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions
+node tools/new-dsh-plugin/cli.mts --check plugins/dsh-next-actions
 ```
 
 ## 本地安装
