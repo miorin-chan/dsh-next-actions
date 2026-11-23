@@ -5,7 +5,7 @@
 
 ## 项目入口
 
-产品理念、形态与机制见 `DESIGN.md`；命令与安装说明见 `README.md`。
+产品理念、形态与机制见[设计](DESIGN.md)，安装与基本用法见[插件 README](README.md)。
 项目以极简为原则：新增机制前先确认它服务于「看一眼 → 点一下 → 在输入框里改」这条核心路径。
 
 文档中的命令、参数和示例应与实际脚本一致。
@@ -72,16 +72,8 @@
 
 ## 验证
 
-迭代时先运行受影响的测试。运行时代码变更完成后执行项目的完整检查；发行时按项目说明打包。
-具体命令与验证重点见 `README.md`。
-
-- 在项目根运行 `npm run check`：`node --test`、`tsc -p tsconfig.json`、
-  `node scripts/build.mjs --check` 与 `node scripts/sync-types.mjs --check` 依次检查行为、类型、产物新鲜度与类型包版本。
-- 修改 `src/` 后运行 `npm run build`，将生成的 `index.js` 与 `client.js` 一并提交。
-- DSH 升级后先 `node scripts/sync-types.mjs` 重新钉住类型包版本，再跑 `npm run check`。
-- 在默认工作区根运行 `node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions` 检查骨架。
-- 打包检查用 `npm pack --dry-run`。
-- 安装、升级与卸载验证使用假 `DSH_HOME` 的 `dsh plugin` 命令，不操作真实 profile。
+迭代时先运行受影响的测试。运行时代码变更完成后执行项目的完整检查，发行前检查打包。
+构建、类型同步、骨架检查及隔离安装验证的命令见[开发与发布](docs/development.md)。
 
 行为或校验变更同时覆盖有效输入与对应的拒绝、缺失或冲突情形。
 断言具体结果及关键状态，将问题复现保留为回归测试。
@@ -90,16 +82,16 @@
 报告中明确区分夹具测试与实机观察，并说明实际执行的检查。
 
 验证操作保持范围明确；交互检查结束后恢复临时状态和测试视口。
-开发源码、profile 的 `link:` 安装副本与运行中的应用分开管理，具体职责以 `README.md` 为准。
+开发源码、profile 的 `link:` 安装副本与运行中的应用分开管理。
 
 ## 文档职责
 
 每条长期规则拥有一个明确的归属位置，其他文档通过简短引用连接。
 移动或合并内容时，同步更新链接、示例和相关说明，删除重复段落。
 
-`DESIGN.md` 描述产品理念、形态与机制；实现状态、待验证项、排期与调试记录不写入其中（待实机确认项放在 `README.md`）。
-
-使用说明描述可用操作，版本日志记录实现变化，测试记录保存观察与证据。
+双语插件 README 介绍用途、安装与基本操作。产品理念、形态与机制见[设计](DESIGN.md)。
+本地安装、构建、测试、发布流程和待实机确认项见[开发与发布](docs/development.md)。
+版本日志记录实现变化，测试记录保存观察与证据。
 临时记录中的长期价值应整理到对应文档，再清理临时内容。
 
 ## 文档写作
@@ -141,7 +133,6 @@
 
 - 保持插件可以独立安装、启用与停用。
   插件以 npm 公开发布，保留入库的构建产物与现有的 `test/`。
-- 在工作区根目录运行 `node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions` 检查骨架。
 - 重排修改过的英文 Markdown 时，在项目根目录运行 `docs/scripts/reflow md <path>`。
   命令需要 Python 3.11 或更新版本。
 - 在项目根运行 `prek install`，之后提交时会自动重排暂存的 Markdown。
