@@ -58,9 +58,9 @@
 
 ## 结构
 
-- `src/host/index.ts` 是 Host 半的源码，`index.js` 由 `node scripts/build.mjs` 生成并入库。
+- `src/host/index.ts` 是 Host 半的源码，`node scripts/build.mjs` 由此生成 `index.js`。
   构建将 `src/lib/normalize.ts` 内联进 Host bundle，规范化测试直接导入这份 TypeScript 源码。
-- `src/client/index.ts` 是 Client 半的源码，`client.js` 由同一个构建生成并入库。
+- `src/client/index.ts` 是 Client 半的源码，同一个构建生成 `client.js`。
   构建负责 `window.__ModuleLoader__` 信封，源码只导出 `inject` 与 `apply`。
 - `tsconfig.json`、`scripts/build.mjs`、`scripts/sync-types.mjs` 是 TypeScript 基座，
   模板来自工作区 `tools/dsh-plugin-ts/`；类型只以 `import type` 出现，产物里没有 `@deepseek-ai/*` 运行时依赖。
@@ -132,7 +132,8 @@
 ## 骨架与 Markdown
 
 - 保持插件可以独立安装、启用与停用。
-  插件以 npm 公开发布，保留入库的构建产物与现有的 `test/`。
+  Git 忽略生成的 `index.js` 和 `client.js`，npm 发布包仍包含这两个入口。
+  保留现有的 `test/`。
 - 重排修改过的英文 Markdown 时，在项目根目录运行 `docs/scripts/reflow md <path>`。
   命令需要 Python 3.11 或更新版本。
 - 在项目根运行 `prek install`，之后提交时会自动重排暂存的 Markdown。

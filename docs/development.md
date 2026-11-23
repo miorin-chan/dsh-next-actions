@@ -2,18 +2,18 @@
 
 ## 构建与测试
 
-在 DSH shell 中进入仓库根目录，使用 Node.js 24 安装开发依赖、构建并检查。
-测试借助 Node.js 内置的 TypeScript 支持直接加载规范化源码。
+在新检出的仓库根目录使用 Node.js 24 安装开发依赖并检查。
+`prepare` 会在安装依赖时构建插件。测试借助 Node.js 内置的 TypeScript 支持直接加载规范化源码。
 [规范化模块](../src/lib/normalize.ts)
 
 ```sh
-npm install
-npm run build
+pnpm install --frozen-lockfile
 npm run check
 ```
 
-构建生成 Host 和 Client 的 JavaScript 入口，并将参数规范化模块内联到 Host 入口。
-提交源码时一并提交这两个产物。[Host 入口](../index.js) · [Client 入口](../client.js)
+构建生成 `index.js` 和 `client.js`，并将参数规范化模块内联到 Host 入口。
+Git 忽略这两个产物，npm 发布包包含它们。修改源码后可用 `npm run build` 更新产物。
+[Host 源码](../src/host/index.ts) · [Client 源码](../src/client/index.ts)
 
 源码与产物的目录结构详见[项目约定](../AGENTS.local.md#结构)。
 宣传片源码、封面和渲染脚本位于仓库的 `assets/promo/`，成片由脚本在本地生成。
@@ -33,7 +33,8 @@ node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions
 本仓库使用包名 `@miorin/dsh-next-actions`。支持的 DSH 版本见包清单中的 `engines.dsh`。
 [包清单](../package.json)
 
-使用 Desktop 时，先打开应用初始化 profile，再完全退出。
+先在新检出的仓库根目录运行 `pnpm install --frozen-lockfile` 安装依赖并构建插件。
+使用 Desktop 时，打开应用初始化 profile，再完全退出。
 使用 Web 时，将 `desktop` 换成你的 profile 名称。
 将下面示例中的路径替换为本地仓库的绝对路径。
 
@@ -60,7 +61,7 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 
 ## 发布
 
-更新版本号和版本日志后，运行检查、打包预览并发布。
+更新版本号和版本日志后，按[构建与测试](#构建与测试)准备仓库，再运行检查、打包预览并发布。
 [package.json](../package.json) · [版本日志](../CHANGELOG.md)
 
 ```sh
