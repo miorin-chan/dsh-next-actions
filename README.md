@@ -10,12 +10,10 @@ Edit it or send it as is when you’re ready.
 
 ## Install
 
-In DSH, open **Plugins** and install the latest version of **Suggested next actions**.
-Restart DSH after installing.
+Install from the DSH plugin marketplace or run the command below.
 
-## Turn off
-
-Set `config.enabled` to `false` on the `dsh-next-actions` entry in your profile’s `cordis.patch.yml`, then restart DSH.
-[Configuration example](docs/development.md#停用配置)
+```sh
+dsh plugin --profile desktop add @miorin/dsh-next-actions
+```
 
 [Usage examples and project docs](docs/README.md) · [MIT license](LICENSE) · [Third-party notices](NOTICE)
