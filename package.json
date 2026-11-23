@@ -7,11 +7,11 @@
   "author": "LighghtEeloo",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LighghtEeloo/dsh-next-actions.git"
+    "url": "git+https://github.com/miorin-chan/dsh-next-actions.git"
   },
-  "homepage": "https://github.com/LighghtEeloo/dsh-next-actions#readme",
+  "homepage": "https://github.com/miorin-chan/dsh-next-actions#readme",
   "bugs": {
-    "url": "https://github.com/LighghtEeloo/dsh-next-actions/issues"
+    "url": "https://github.com/miorin-chan/dsh-next-actions/issues"
   },
   "type": "module",
   "keywords": [
