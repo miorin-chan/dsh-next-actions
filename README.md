@@ -71,9 +71,8 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 
 ```text
 index.js            Host: tool, root-agent standing prompt, enabled gate (built)
-lib/normalize.js    Argument normalization; writes the card model to tool/result.meta (built)
 client.js           Client: definitions, card, process row and CSS (built)
-src/                TypeScript sources the three artifacts are built from
+src/                TypeScript sources, including the argument normalizer
 scripts/            build.mjs writes the artifacts; sync-types.mjs pins the DSH type packages
 tsconfig.json       Strict type check configuration
 cordis.patch.yml    Plugin row patch
@@ -84,13 +83,15 @@ assets/promo/       Promo video: sources, poster and render scripts (output is n
 
 ## Development
 
+Use Node.js 24 for development. The tests load `src/lib/normalize.ts` directly using Node’s built-in TypeScript support.
+
 ```sh
 npm install         # pinned dev dependencies
-npm run build       # regenerate index.js, client.js and lib/normalize.js from src/
+npm run build       # regenerate index.js and client.js from src/
 npm run check       # tests, types, artifact freshness and pinned type packages
 ```
 
-`src/` is the source of truth; the three committed artifacts are build output and are never edited by hand.
+Edit the TypeScript sources in `src/` and commit the generated `index.js` and `client.js` for DSH to load.
 
 Use `plugin_manager`'s `install_bundle` / `remove_bundle` to install or uninstall; verify with a fake `DSH_HOME`.
 Restart DSH for Host changes; refresh the page for Client changes.

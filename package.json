@@ -37,7 +37,6 @@
     "index.js",
     "client.js",
     "cordis.patch.yml",
-    "lib/normalize.js",
     "locale/*.json",
     "icon.svg",
     "DESIGN.md",

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { buildMeta, LIMITS } from '../lib/normalize.js'
+import { buildMeta, LIMITS } from '../src/lib/normalize.ts'
 
 function loadCard() {
   let bundle

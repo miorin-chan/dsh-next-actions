@@ -59,14 +59,13 @@
 ## 结构
 
 - `src/host/index.ts` 是 Host 半的源码，`index.js` 由 `node scripts/build.mjs` 生成并入库。
-  `src/lib/normalize.ts` 的参数规范化由同一个构建内联进 Host bundle，并单独产出 `lib/normalize.js` 供测试直接引用。
+  构建将 `src/lib/normalize.ts` 内联进 Host bundle，规范化测试直接导入这份 TypeScript 源码。
 - `src/client/index.ts` 是 Client 半的源码，`client.js` 由同一个构建生成并入库。
   构建负责 `window.__ModuleLoader__` 信封，源码只导出 `inject` 与 `apply`。
 - `tsconfig.json`、`scripts/build.mjs`、`scripts/sync-types.mjs` 是 TypeScript 基座，
   模板来自工作区 `tools/dsh-plugin-ts/`；类型只以 `import type` 出现，产物里没有 `@deepseek-ai/*` 运行时依赖。
-  `build.mjs` 在模板基础上增加了 `src/lib/*.ts` → `lib/*.js` 的产出，因为 Host 与测试共用一个规范化模块。
-- `test/` 三份测试保持原样：它们经假的 `window.__ModuleLoader__` 加载构建后的 `client.js`，
-  并直接 import `../lib/normalize.js`；源码迁移不改变断言。
+- `test/` 由 Node.js 运行。
+  Host 测试导入构建后的 `index.js`，Client 与契约测试通过模拟的 `window.__ModuleLoader__` 加载构建后的 `client.js`。
 - 依赖 DSH 内部形状之处（事件 payload、slot 服务、Chat 快照切片、输入 facade）用局部结构类型收口，
   使用处注明「internal shape, verified against 0.2.2-rc.5」，DSH 升级后重新确认。
 - `locale/*.json` 存放 Plugin Manager 的本地化元数据；卡片自身文案在 `src/client/index.ts` 的本地化表里。
@@ -78,7 +77,7 @@
 
 - 在项目根运行 `npm run check`：`node --test`、`tsc -p tsconfig.json`、
   `node scripts/build.mjs --check` 与 `node scripts/sync-types.mjs --check` 依次检查行为、类型、产物新鲜度与类型包版本。
-- 修改 `src/` 后先 `npm run build` 再提交；`index.js`、`client.js` 与 `lib/normalize.js` 是入库产物，不手改。
+- 修改 `src/` 后运行 `npm run build`，将生成的 `index.js` 与 `client.js` 一并提交。
 - DSH 升级后先 `node scripts/sync-types.mjs` 重新钉住类型包版本，再跑 `npm run check`。
 - 在默认工作区根运行 `node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions` 检查骨架。
 - 打包检查用 `npm pack --dry-run`。

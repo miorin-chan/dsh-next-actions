@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { apply, normalizeConfig, __definition as tool, __guidance } from '../index.js'
-import { buildMeta, LIMITS, overwideLabels, textWidth } from '../lib/normalize.js'
+import { buildMeta, LIMITS, overwideLabels, textWidth } from '../src/lib/normalize.ts'
 
 const args = (suggestions) => ({
   context: '  修复已完成，\n改动集中在 src/api。 ',

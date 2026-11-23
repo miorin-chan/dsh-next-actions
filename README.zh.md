@@ -62,9 +62,8 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 
 ```text
 index.js            Host：工具 + 根 agent 常驻提示 + enabled 门控（构建产物）
-lib/normalize.js    参数规范化，结果写入 tool/result.meta（构建产物）
 client.js           Client：Definition、卡片、过程行与 CSS（构建产物）
-src/                三类产物的 TypeScript 源码
+src/                TypeScript 源码，包含参数规范化模块
 scripts/            build.mjs 生成产物；sync-types.mjs 钉住 DSH 类型包版本
 tsconfig.json       严格类型检查配置
 cordis.patch.yml    插件行 patch
@@ -75,13 +74,15 @@ assets/promo/       宣传片：源文件、封面与渲染脚本（成片不入
 
 ## 开发
 
+开发使用 Node.js 24。测试通过 Node.js 内置的 TypeScript 支持直接加载 `src/lib/normalize.ts`。
+
 ```sh
 npm install         # 安装钉住版本的开发依赖
-npm run build       # 由 src/ 重新生成 index.js、client.js 与 lib/normalize.js
+npm run build       # 由 src/ 重新生成 index.js 与 client.js
 npm run check       # 测试、类型、产物新鲜度与类型包版本
 ```
 
-`src/` 是唯一源码；入库的三类产物由构建生成，不手改。
+修改 `src/` 中的 TypeScript 源码后，将生成的 `index.js` 与 `client.js` 一并提交，供 DSH 加载。
 
 安装/卸载用 `plugin_manager` 的 `install_bundle` / `remove_bundle`；验证使用假 `DSH_HOME`。
 Host 改动需重启 DSH，Client 改动需刷新页面。
