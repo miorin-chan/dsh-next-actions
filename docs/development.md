@@ -30,9 +30,12 @@ node tools/new-dsh-plugin/cli.mjs --check plugins/dsh-next-actions
 
 ## 本地安装
 
-本仓库使用包名 `@miorin/dsh-next-actions`。
-按插件 README 准备 profile，再将下面示例中的路径替换为本地仓库的绝对路径。
-[安装说明](../README.zh.md#安装)
+本仓库使用包名 `@miorin/dsh-next-actions`。支持的 DSH 版本见包清单中的 `engines.dsh`。
+[包清单](../package.json)
+
+使用 Desktop 时，先打开应用初始化 profile，再完全退出。
+使用 Web 时，将 `desktop` 换成你的 profile 名称。
+将下面示例中的路径替换为本地仓库的绝对路径。
 
 ```sh
 dsh plugin --profile desktop add link:/path/to/dsh-next-actions
@@ -42,22 +45,10 @@ dsh plugin --profile desktop add link:/path/to/dsh-next-actions
 验证安装、升级或卸载时，给 `dsh plugin` 命令设置临时 `DSH_HOME`。
 安装或重新构建 Host 后重启 DSH。重新构建 Client 后刷新页面。
 
-## 已发布版本
-
-无作用域的 `dsh-next-actions` 在 npm 上的最新版本是 0.1.7。
-也可以从 DSH 插件页安装这个包。[npm](https://www.npmjs.com/package/dsh-next-actions)
-
-```sh
-dsh plugin --profile desktop add dsh-next-actions
-```
-
-安装后重启 DSH。
-
 ## 停用配置
 
 在 profile 的 `cordis.patch.yml` 中，将插件条目的 `config.enabled` 设为 `false`，即可关闭工具和常驻提示。
-停用后常驻 token 开销为零。下面是当前作用域包的配置示例。
-通过 npm 安装无作用域版本时，`name` 使用 `dsh-next-actions`。
+停用后常驻 token 开销为零。将示例中的 `name` 设为 profile 中已安装的包名。
 
 ```yaml
 - id: dsh-next-actions

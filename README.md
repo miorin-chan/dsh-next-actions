@@ -10,19 +10,8 @@ Edit it or send it as is when you’re ready.
 
 ## Install
 
-Requires DSH 0.2.2-rc.1 or later.
-On Desktop, open the app once to create its profile, then quit it before installing.
-Run the command below from the checkout root.
-On Web, replace `desktop` with your profile name.
-
-```sh
-dsh plugin --profile desktop add "link:$PWD"
-```
-
+In DSH, open **Plugins** and install the latest version of **Suggested next actions**.
 Restart DSH after installing.
-
-The earlier `dsh-next-actions` 0.1.7 release is available from the Plugins page.
-[Registry install command](docs/development.md#已发布版本)
 
 ## Turn off
 

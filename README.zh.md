@@ -9,17 +9,7 @@
 
 ## 安装
 
-需要 DSH 0.2.2-rc.1 或更高版本。使用 Desktop 时，先打开应用初始化 profile，再完全退出。
-在仓库根目录运行下面的命令。使用 Web 时，将 `desktop` 换成你的 profile 名称。
-
-```sh
-dsh plugin --profile desktop add "link:$PWD"
-```
-
-安装后重启 DSH。
-
-插件页也可以安装已发布的 `dsh-next-actions` 0.1.7。
-[npm 安装命令](docs/development.md#已发布版本)
+在 DSH 的「插件」页安装最新版的「下一步建议」，然后重启 DSH。
 
 ## 停用
 
