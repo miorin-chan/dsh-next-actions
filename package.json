@@ -1,6 +1,6 @@
 {
   "name": "@miorin/dsh-next-actions",
-  "version": "0.1.1",
+  "version": "0.1.9",
   "license": "MIT",
   "description": "Suggested next actions under DeepSeek Harness replies; clicking one fills the input draft, never sends.",
   "icon": "./icon.svg",
