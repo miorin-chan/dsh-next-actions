@@ -1,7 +1,9 @@
 # 项目文档
 
 - 插件用途、安装与基本操作。[English](../README.md) · [中文](../README.zh.md)
-- 产品理念、交互规则与实现机制。[设计](../DESIGN.md)
+- 产品理念、目标体验与成功标准。[产品设计](../DESIGN.md)
+- Host/Client 模块职责与状态派生机制。
+  [实现说明](IMPLEMENTATION.md)
 - 本地安装、停用配置、构建、测试和发布命令。
   [开发与发布](development.md)
 - 各次发行的实现变化。[版本日志](../CHANGELOG.md)
